@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dino Survival</title>
+    <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+    <h1>🦖 Dino Survival Game</h1>
+    
+    <div id="stats">
+        <p>Hunger: <span id="hunger">50</span></p>
+        <p>Energy: <span id="energy">70</span></p>
+        <p>Health: <span id="health">100</span></p>
+        <p>Points: <span id="points">0</span></p> 
+    </div>
+
+    <div id="actions">
+        <button onclick="performAction('hunt')">Hunt</button>
+        <button onclick="performAction('rest')">Rest</button>
+        <button onclick="performAction('drink')">Drink</button>
+    </div>
+
+    <div id="events"></div>
+
+    <script>
+        window.onload = async () => {
+            await fetch('/api/reset', { method: 'POST' });
+            resetUI();
+        };
+
+        function resetUI() {
+            document.getElementById('hunger').textContent = 50;
+            document.getElementById('energy').textContent = 70;
+            document.getElementById('health').textContent = 100;
+            document.getElementById('points').textContent = 0;
+            document.getElementById('events').innerHTML = '';
+        }
+
+        async function performAction(action) {
+            try {
+                const response = await fetch('http://localhost:3000/api/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+
+                const data = await response.json();
+                
+                if(data.error) {
+                    alert(`Game Over! Final Score: ${data.points}`); 
+                    return;
+                }
+
+                document.getElementById('hunger').textContent = data.hunger;
+                document.getElementById('energy').textContent = data.energy;
+                document.getElementById('health').textContent = data.health;
+                document.getElementById('points').textContent = data.points;
+                
+                const eventsDiv = document.getElementById('events');
+                eventsDiv.innerHTML = `<p>${data.event}</p>` + eventsDiv.innerHTML;
+
+            } catch (error) {
+                console.error('Action failed:', error);
+                alert('Connection error!');
+            }
+        }
+    </script>
+</body>
+</html>
